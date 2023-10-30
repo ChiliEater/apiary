@@ -1,0 +1,2 @@
+GET http://localhost:7777/posts/0.json HTTP/1.1
+

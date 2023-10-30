@@ -1,0 +1,8 @@
+PUT http://localhost:7777/cookie/dev HTTP/1.1
+Host: http://localhost:7777
+Content-type: text/plain
+Content-Length: 64
+
+{
+    "content": "2e99f2183d3c131cd47eef82ed169b9bbe900fc9ae241fb6a738a2821115a6e1"
+}
