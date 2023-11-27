@@ -1,7 +1,8 @@
 {
     "dependencies": {
         "body-parser": "^1.20.2",
-        "express": "^4.18.2"
+        "express": "^4.18.2",
+        "mariadb": "^3.2.2"
     },
     "devDependencies": {
         "@types/express": "^4.17.20",
@@ -12,6 +13,6 @@
         "typescript": "^5.2.2"
     },
     "scripts": {
-        "dev": "concurrently \"yarn run tsc --watch\" \"yarn run nodemon -q build/Main.js\""
+        "dev": "concurrently \"docker compose -f db/docker-compose.yml up\" \"yarn run tsc --watch\" \"yarn run nodemon -q build/Main.js\""
     }
 }
