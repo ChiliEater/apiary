@@ -15,7 +15,7 @@ class Database {
             database: 'node',
             connectionLimit: 1
         });
-        DummyData.setupData(this.pool).then((res) => console.log(res));
+        DummyData.setupData(this.pool).then(() => {});
     }
 
 }

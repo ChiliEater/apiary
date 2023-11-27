@@ -77,39 +77,11 @@ class DummyData {
         try {
             connection = await pool.getConnection();
 
-            let res = await DummyData.dummyCategories(connection);
-            
-            let productTable = 'products';
-            res = await connection.query(`
-                CREATE OR REPLACE TABLE ${productTable} (
-                    id INT NOT NULL AUTO_INCREMENT, 
-                    category INT NOT NULL,
-                    name VARCHAR(50) NOT NULL,
-                    price INT NOT NULL,
-                    location VARCHAR(50) NOT NULL,
-                    contact VARCHAR(50) NOT NULL,
-                    images TEXT NOT NULL,
-                    PRIMARY KEY (id)
-                );
-            `);
-            console.log(res); 
-            console.log(Category.Burger);
-            let burgers = this.generateProductsInCategory(
-                Random.shuffleArray(this.prefixes.slice()),
-                "Burger",
-                Category.Burger,
-                [
-                    "img/products/burger/burger1.jpg",
-                    "img/products/burger/burger2.jpg",
-                    "img/products/burger/burger3.jpg",
-                    "img/products/burger/burger4.jpg",
-                    "img/products/burger/burger5.jpg",
-                ]
-            ); 
-            console.log("test");
-            console.log(burgers);
-    
-
+            let res;
+            res = await this.dummyCategories(connection);
+            res = await this.dummyProducts(connection);
+            res = await this.dummyUsers(connection);
+            res = await this.dummyCarts(connection);
         } catch (err) {
             throw err;
         } finally {
@@ -117,7 +89,7 @@ class DummyData {
         }
     }
 
-    private static async dummyCategories(connection: mariadb.PoolConnection) {
+    private static async dummyCategories(connection: PoolConnection) {
         let categoriesTable = 'categories';
         let res = await connection.query(`
                 CREATE OR REPLACE TABLE ${categoriesTable} (
@@ -141,6 +113,73 @@ class DummyData {
         return res;
     }
 
+    private static async dummyProducts(connection: PoolConnection) {
+        let productTable = 'products';
+        let res = await connection.query(`
+            CREATE OR REPLACE TABLE ${productTable} (
+                id INT NOT NULL AUTO_INCREMENT, 
+                category INT NOT NULL,
+                name VARCHAR(50) NOT NULL,
+                price INT NOT NULL,
+                location VARCHAR(50) NOT NULL,
+                contact VARCHAR(50) NOT NULL,
+                images TEXT NOT NULL,
+                PRIMARY KEY (id)
+            );
+        `);
+
+        let products; 
+        products = this.generateProductsInCategory( 
+            Random.shuffleArray(this.prefixes.slice()),
+            "Burger",
+            Category.Burger,
+            [
+                "img/products/burger/burger1.jpg",
+                "img/products/burger/burger2.jpg",
+                "img/products/burger/burger3.jpg",
+                "img/products/burger/burger4.jpg",
+                "img/products/burger/burger5.jpg",
+            ]
+        );
+        res = await this.addProduct(connection, productTable, products)
+        //res = await connection.query(`SELECT * FROM ${productTable} WHERE category LIKE 1`);
+        //console.log(res);
+        return res;
+    }
+
+    private static async dummyUsers(connection: PoolConnection) {
+        let userTable = 'users';
+        let res = await connection.query(`
+            CREATE OR REPLACE TABLE ${userTable} (
+                id INT NOT NULL AUTO_INCREMENT,
+                name VARCHAR(50) NOT NULL,
+                PRIMARY KEY (id)
+            );
+        `);
+        res = await connection.query(`
+        INSERT INTO ${userTable} (name) VALUES (?);
+        `, ["John Smith"]);
+        //res = await connection.query(`SELECT * FROM ${userTable};`);
+        //console.log(res);
+        return res;
+    }
+
+    private static async dummyCarts(connection: PoolConnection) {
+        let cartTable = 'carts';
+        let res = await connection.query(`
+            CREATE OR REPLACE TABLE ${cartTable} (
+                id INT NOT NULL AUTO_INCREMENT,
+                productId INT NOT NULL,
+                userId INT NOT NULL,
+                PRIMARY KEY (id)
+            );
+        `);
+        res = await connection.query(`INSERT INTO ${cartTable} (productId, userId) VALUES (?,?)`, [1, 1]);
+        //res = await connection.query(`SELECT * FROM ${cartTable}`);
+        //console.log(res);
+        return res;
+    }
+
     private static generateProductsInCategory(prefixes: string[], name: string, category: Category, images: string[]): ProductArray[] {
         return prefixes.map(prefix => [
                 category as number, 
@@ -152,6 +191,7 @@ class DummyData {
             ]
         );
     }
+    
 
     private static addCategory(connection: PoolConnection, table: string, category: CategoryArray) {
         return connection.query(`
@@ -160,8 +200,8 @@ class DummyData {
         category);
     }
 
-    private static addProduct(connection: PoolConnection, table: string, product: ProductArray) {
-        return connection.query(`
+    private static addProduct(connection: PoolConnection, table: string, product: ProductArray[]) {
+        return connection.batch(`
             INSERT INTO ${table} (category, name, price, location, contact, images) value (?,?,?,?,?,?);
         `,
         product);
