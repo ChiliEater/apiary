@@ -15,6 +15,9 @@ type ProductSchema = {
 type CartSchema = { id: number, productId: number, userId: number };
 type DatabaseResponse = { affectedRows: number, insertId: bigint, warningStatus: number };
 
+/**
+ * Holds abstractions for database access
+ */
 class Database {
     public static categoriesTable = "categories";
     public static productTable = "products";
@@ -34,6 +37,10 @@ class Database {
         DummyData.setupData(this.pool).then(() => { });
     }
 
+    /**
+     * Get a list of all available categories
+     * @returns Result
+     */
     public async getCategories(): Promise<CategorySchema[]> {
         let connection: PoolConnection | undefined;
         let res: Promise<CategorySchema[]>;
@@ -48,6 +55,11 @@ class Database {
         return res;
     }
 
+    /**
+     * List all products in a certain category
+     * @param category Category to search in
+     * @returns Result
+     */
     public async getProductsInCategory(category: Category): Promise<ProductSchema[]> {
         let connection: PoolConnection | undefined;
         let res: Promise<ProductSchema[]>;
@@ -62,6 +74,12 @@ class Database {
         return res;
     }
 
+    /**
+     * Add a product to a user's cart
+     * @param product Product to add
+     * @param user Which user to perform this operation for
+     * @returns Summary of the operation
+     */
     public async addToCart(product: number, user: number): Promise<DatabaseResponse> {
         let connection: PoolConnection | undefined;
         let res: Promise<DatabaseResponse>;
@@ -76,12 +94,36 @@ class Database {
         return res;
     }
 
+    /**
+     * Remove a cart entry
+     * @param id Cart item to remove
+     * @returns Summary of the operation
+     */
     public async removeFromCart(id: bigint): Promise<DatabaseResponse> {
         let connection: PoolConnection | undefined;
         let res: Promise<DatabaseResponse>;
         try {
             connection = await this.pool.getConnection();
             res = connection.query(`DELETE FROM ${Database.cartTable} WHERE id LIKE ${id};`);
+        } catch (err) {
+            throw err;
+        } finally {
+            if (connection) await connection.end();
+        }
+        return res;
+    }
+
+    /**
+     * List the contents of a user's cart
+     * @param user Whose cart
+     * @returns The cart
+     */
+    public async getCart(user: number): Promise<CartSchema> {
+        let connection: PoolConnection | undefined;
+        let res: Promise<CartSchema>;
+        try {
+            connection = await this.pool.getConnection();
+            res = connection.query(`SELECT * FROM ${Database.cartTable} WHERE userId LIKE ${user};`);
         } catch (err) {
             throw err;
         } finally {

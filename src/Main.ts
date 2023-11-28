@@ -14,8 +14,7 @@ const cookiePath: RegExp = /\/cookie\/.*?\/?/;
 
 const db = new Database();
 db.addToCart(1, 1).then(val => console.log(val.insertId));
-db.removeFromCart(2n).then(val => console.log(val));
-db.removeFromCart(2n).then(val => console.log(val));
+db.getCart(1).then(val => console.log(val));
 
 /*
 server.get("/", (req: Request, res: Response) => {
