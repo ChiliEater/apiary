@@ -40,28 +40,3 @@ let carts = new Cart(db);
 carts.listCart(server);
 carts.addToCart(server);
 carts.removeFromCart(server);
-
-/*
-server.get("/", (req: Request, res: Response) => {
-    res.send("This is a test wow");
-});
-
-server.use(express.static(publicRoot));
-
-
-server.post(cookiePath, (req: Request, res: Response) => {
-    Logger.info("Received POST");
-    res.json();
-});
-
-server.put(cookiePath, (req: Request, res: Response) => {
-    Logger.info("Received PUT");
-    res.json();
-});
-
-
-server.delete(cookiePath, (req: Request, res: Response) => {
-    Logger.info("Received DELETE");
-    res.json();
-});
-*/
