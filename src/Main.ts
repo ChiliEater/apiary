@@ -22,6 +22,9 @@ server.listen(port, () => {
     Logger.info(`Server started at http://localhost:${port}`);
 });
 
+server.use(express.json());
+server.use(express.static('public'));
+
 let categories = new Categories(db);
 categories.listCategories(server);
 console.log("Categories init");
@@ -35,6 +38,8 @@ users.listUser(server);
 
 let carts = new Cart(db);
 carts.listCart(server);
+carts.addToCart(server);
+carts.removeFromCart(server);
 
 /*
 server.get("/", (req: Request, res: Response) => {

@@ -119,7 +119,7 @@ class Database {
      * @param id Cart item to remove
      * @returns Summary of the operation
      */
-    public async removeFromCart(id: bigint): Promise<DatabaseResponse> {
+    public async removeFromCart(id: number): Promise<DatabaseResponse> {
         let connection: PoolConnection | undefined;
         let res: Promise<DatabaseResponse>;
         try {

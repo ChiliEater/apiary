@@ -1,2 +1,2 @@
-GET http://localhost:7777/categories HTTP/1.1
+DELETE http://localhost:7777/carts/2 HTTP/1.1
 
