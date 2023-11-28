@@ -146,23 +146,29 @@ class DummyData {
                 PRIMARY KEY (id)
             );
         `);
+        let products: ProductArray[] = [];
+        let productMap: Map<Category, string> = new Map([
+            [Category.Burger, "burger"],
+            [Category.Chinese, "chinese"],
+            [Category.Donuts, "donuts"],
+            [Category.Fish, "fish"],
+            [Category.Italian, "pasta"],
+            [Category.Japanese, "ramen"],
+            [Category.Mexican, "tacos"],
+            [Category.Pizza, "pizza"],
+            [Category.Sandwich, "sub"],
+            [Category.Vietnamese, "vietnamese"],
+        ]);
 
-        let products;
-
-        products = this.generateProductsInCategory(
+        productMap.forEach((name: string, category: Category) => products = products.concat(this.generateProductsInCategory(
             Random.shuffleArray(this.prefixes.slice()),
-            "Burger",
-            Category.Burger,
-            [
-                "img/products/burger/burger1.jpg",
-                "img/products/burger/burger2.jpg",
-                "img/products/burger/burger3.jpg",
-                "img/products/burger/burger4.jpg",
-                "img/products/burger/burger5.jpg",
-            ]
-        );
+            name[0].toUpperCase() + name.slice(1),
+            category,
+            new Array(5).fill("").map((_, i) => `img/products/${name}/${name}${i}.jpg`)
+        )));
+
         res = await this.addProduct(connection, Database.productTable, products)
-        //res = await connection.query(`SELECT * FROM ${productTable} WHERE category LIKE 1`);
+        //res = await connection.query(`SELECT * FROM ${Database.productTable} WHERE category LIKE 2`);
         //console.log(res);
         return res;
     }

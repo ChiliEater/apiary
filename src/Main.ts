@@ -12,6 +12,7 @@ const publicRoot: string = process.env.ROOT as unknown as string;
 const cookiePath: RegExp = /\/cookie\/.*?\/?/;
 
 const db = new Database();
+db.getCategories().then(val => console.log(val));
 
 /*
 server.get("/", (req: Request, res: Response) => {
