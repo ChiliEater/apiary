@@ -1,18 +1,22 @@
-import mariadb, { Pool, PoolConnection } from 'mariadb';
+import mariadb, { Pool, PoolConnection, UpsertResult } from 'mariadb';
 import Random from '../random/Random';
 import Category from './Products';
+import Logger from '../logger/Logger';
+import Database from './Database';
 
 type CategoryArray = [name: string, path: string];
 type ProductArray = [
     category: number,
-    name: string, 
-    price: number, 
-    location: string, 
-    contact: string, 
+    name: string,
+    price: number,
+    location: string,
+    contact: string,
     images: string
 ];
 
-
+/**
+ * Collection of static functions to fill a MariaDB instance with testing data.
+ */
 class DummyData {
     private static streets = [
         "Noxapater, Mississippi, 39346",
@@ -70,9 +74,14 @@ class DummyData {
         "Goergeous",
     ]
 
-    private constructor() {}
+    private constructor() { }
 
-    public static async setupData(pool: Pool) {
+    /**
+     * Setup the dummy data.
+     * @param pool The MariaDB pool
+     * @returns Result of the disconnect
+     */
+    public static async setupData(pool: Pool): Promise<void> {
         let connection: PoolConnection | undefined;
         try {
             connection = await pool.getConnection();
@@ -89,7 +98,12 @@ class DummyData {
         }
     }
 
-    private static async dummyCategories(connection: PoolConnection) {
+    /**
+     * Creates the categories table
+     * @param connection DB connection
+     * @returns Result of the last operation
+     */
+    private static async dummyCategories(connection: PoolConnection): Promise<any> {
         let categoriesTable = 'categories';
         let res = await connection.query(`
                 CREATE OR REPLACE TABLE ${categoriesTable} (
@@ -99,24 +113,29 @@ class DummyData {
                     PRIMARY KEY (id)
                 );
             `);
-        res = await DummyData.addCategory(connection, categoriesTable, ["Burger", "img/categories/burger.jpg"]);
-        res = await DummyData.addCategory(connection, categoriesTable, ["Chinese", "img/categories/chinese.jpg"]);
-        res = await DummyData.addCategory(connection, categoriesTable, ["Donuts", "img/categories/donuts.jpg"]);
-        res = await DummyData.addCategory(connection, categoriesTable, ["Fish", "img/categories/fish.jpg"]);
-        res = await DummyData.addCategory(connection, categoriesTable, ["Italian", "img/categories/italian.jpg"]);
-        res = await DummyData.addCategory(connection, categoriesTable, ["Japanese", "img/categories/japanese.jpg"]);
-        res = await DummyData.addCategory(connection, categoriesTable, ["Mexican", "img/categories/mexican.jpg"]);
-        res = await DummyData.addCategory(connection, categoriesTable, ["Pizza", "img/categories/pizza.jpg"]);
-        res = await DummyData.addCategory(connection, categoriesTable, ["Sandwich", "img/categories/sandwich.jpg"]);
-        res = await DummyData.addCategory(connection, categoriesTable, ["Vietnamese", "img/categories/vietnamese.jpg"]);
-
+        res = await DummyData.addCategory(connection, categoriesTable, [
+            ["burgerCategory", "img/categories/burger.jpg"],
+            ["chineseCategory", "img/categories/chinese.jpg"],
+            ["donutsCategory", "img/categories/donuts.jpg"],
+            ["fishCategory", "img/categories/fish.jpg"],
+            ["italianCategory", "img/categories/italian.jpg"],
+            ["japaneseCategory", "img/categories/japanese.jpg"],
+            ["mexicanCategory", "img/categories/mexican.jpg"],
+            ["pizzaCategory", "img/categories/pizza.jpg"],
+            ["sandwichCategory", "img/categories/sandwich.jpg"],
+            ["vietnameseCategory", "img/categories/vietnamese.jpg"],
+        ]);
         return res;
     }
 
-    private static async dummyProducts(connection: PoolConnection) {
-        let productTable = 'products';
+    /**
+     * Creates the products table
+     * @param connection DB connection
+     * @returns Result of last operation
+     */
+    private static async dummyProducts(connection: PoolConnection): Promise<any> {
         let res = await connection.query(`
-            CREATE OR REPLACE TABLE ${productTable} (
+            CREATE OR REPLACE TABLE ${Database.productTable} (
                 id INT NOT NULL AUTO_INCREMENT, 
                 category INT NOT NULL,
                 name VARCHAR(50) NOT NULL,
@@ -128,8 +147,9 @@ class DummyData {
             );
         `);
 
-        let products; 
-        products = this.generateProductsInCategory( 
+        let products;
+
+        products = this.generateProductsInCategory(
             Random.shuffleArray(this.prefixes.slice()),
             "Burger",
             Category.Burger,
@@ -141,70 +161,100 @@ class DummyData {
                 "img/products/burger/burger5.jpg",
             ]
         );
-        res = await this.addProduct(connection, productTable, products)
+        res = await this.addProduct(connection, Database.productTable, products)
         //res = await connection.query(`SELECT * FROM ${productTable} WHERE category LIKE 1`);
         //console.log(res);
         return res;
     }
 
-    private static async dummyUsers(connection: PoolConnection) {
-        let userTable = 'users';
+    /**
+     * Creates the users table
+     * @param connection DB connection
+     * @returns Result of the last operation
+     */
+    private static async dummyUsers(connection: PoolConnection): Promise<any> {
         let res = await connection.query(`
-            CREATE OR REPLACE TABLE ${userTable} (
+            CREATE OR REPLACE TABLE ${Database.userTable} (
                 id INT NOT NULL AUTO_INCREMENT,
                 name VARCHAR(50) NOT NULL,
                 PRIMARY KEY (id)
             );
         `);
         res = await connection.query(`
-        INSERT INTO ${userTable} (name) VALUES (?);
+        INSERT INTO ${Database.userTable} (name) VALUES (?);
         `, ["John Smith"]);
         //res = await connection.query(`SELECT * FROM ${userTable};`);
         //console.log(res);
         return res;
     }
 
+
+    /**
+     * Creates the carts table
+     * @param connection DB connection
+     * @returns Result of the insert operation
+     */
     private static async dummyCarts(connection: PoolConnection) {
-        let cartTable = 'carts';
         let res = await connection.query(`
-            CREATE OR REPLACE TABLE ${cartTable} (
+            CREATE OR REPLACE TABLE ${Database.cartTable} (
                 id INT NOT NULL AUTO_INCREMENT,
                 productId INT NOT NULL,
                 userId INT NOT NULL,
                 PRIMARY KEY (id)
             );
         `);
-        res = await connection.query(`INSERT INTO ${cartTable} (productId, userId) VALUES (?,?)`, [1, 1]);
+        res = await connection.query(`INSERT INTO ${Database.cartTable} (productId, userId) VALUES (?,?)`, [1, 1]);
         //res = await connection.query(`SELECT * FROM ${cartTable}`);
         //console.log(res);
         return res;
     }
 
+    /**
+     * Generates a list of the input product with unique names and shuffled images.
+     * @param prefixes List of name prefixes
+     * @param name Name of the product
+     * @param category Which category the product belongs to
+     * @param images Which images should be added to the products
+     * @returns A list of products
+     */
     private static generateProductsInCategory(prefixes: string[], name: string, category: Category, images: string[]): ProductArray[] {
         return prefixes.map(prefix => [
-                category as number, 
-                `${prefix} ${name}`,
-                Random.int(25, 350),
-                this.streets[Random.int(0, this.streets.length - 1)],
-                Random.int(1000000000, 9999999999).toString(),
-                Random.shuffleArray(images.slice()).join(','),
-            ]
+            category as number,
+            `${prefix} ${name}`,
+            Random.int(25, 350),
+            this.streets[Random.int(0, this.streets.length - 1)],
+            Random.int(1000000000, 9999999999).toString(),
+            Random.shuffleArray(images.slice()).join(','),
+        ]
         );
     }
-    
 
-    private static addCategory(connection: PoolConnection, table: string, category: CategoryArray) {
-        return connection.query(`
+    /**
+     * Adds a list of categories to the DB
+     * @param connection DB connection
+     * @param table Where to insert
+     * @param category The list of categories
+     * @returns Summary of the operation
+     */
+    private static addCategory(connection: PoolConnection, table: string, category: CategoryArray[]): Promise<UpsertResult> {
+        return connection.batch(`
             INSERT INTO ${table} (name, image) value (?,?);
         `,
-        category);
+            category);
     }
 
-    private static addProduct(connection: PoolConnection, table: string, product: ProductArray[]) {
+    /**
+     * Adds a list of products to the DB
+     * @param connection DB connection
+     * @param table where to insert
+     * @param product The list of products
+     * @returns Summary of the operation
+     */
+    private static addProduct(connection: PoolConnection, table: string, product: ProductArray[]): Promise<UpsertResult> {
         return connection.batch(`
             INSERT INTO ${table} (category, name, price, location, contact, images) value (?,?,?,?,?,?);
         `,
-        product);
+            product);
     }
 
 }
