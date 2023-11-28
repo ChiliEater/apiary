@@ -4,6 +4,10 @@ import Logger from './logger/Logger';
 import mariadb from 'mariadb';
 import Database from './db/Database';
 import Category from './db/Category';
+import Categories from './routes/Categories';
+import Products from './routes/Products';
+import Users from './routes/Users';
+import Cart from './routes/Cart';
 
 dotenv.config()
 
@@ -13,8 +17,24 @@ const publicRoot: string = process.env.ROOT as unknown as string;
 const cookiePath: RegExp = /\/cookie\/.*?\/?/;
 
 const db = new Database();
-db.addToCart(1, 1).then(val => console.log(val.insertId));
-db.getCart(1).then(val => console.log(val));
+
+server.listen(port, () => {
+    Logger.info(`Server started at http://localhost:${port}`);
+});
+
+let categories = new Categories(db);
+categories.listCategories(server);
+console.log("Categories init");
+
+let products = new Products(db);
+products.listProduct(server);
+products.listProductsInCategory(server)
+
+let users = new Users(db);
+users.listUser(server);
+
+let carts = new Cart(db);
+carts.listCart(server);
 
 /*
 server.get("/", (req: Request, res: Response) => {
@@ -23,9 +43,6 @@ server.get("/", (req: Request, res: Response) => {
 
 server.use(express.static(publicRoot));
 
-server.listen(port, () => {
-    Logger.info(`Server started at http://localhost:${port}`);
-});
 
 server.post(cookiePath, (req: Request, res: Response) => {
     Logger.info("Received POST");

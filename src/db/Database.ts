@@ -13,6 +13,7 @@ type ProductSchema = {
     images: string,
 };
 type CartSchema = { id: number, productId: number, userId: number };
+type UserSchema = { id: number, name: string };
 type DatabaseResponse = { affectedRows: number, insertId: bigint, warningStatus: number };
 
 /**
@@ -47,6 +48,25 @@ class Database {
         try {
             connection = await this.pool.getConnection();
             res = connection.query(`SELECT * FROM ${Database.categoriesTable};`);
+        } catch (err) {
+            throw err;
+        } finally {
+            if (connection) await connection.end();
+        }
+        return res;
+    }
+
+    /**
+     * List all products in a certain category
+     * @param category Category to search in
+     * @returns Result
+     */
+    public async getProduct(id: number): Promise<ProductSchema[]> {
+        let connection: PoolConnection | undefined;
+        let res: Promise<ProductSchema[]>;
+        try {
+            connection = await this.pool.getConnection();
+            res = connection.query(`SELECT * FROM ${Database.productTable} WHERE id LIKE ${id};`);
         } catch (err) {
             throw err;
         } finally {
@@ -131,6 +151,27 @@ class Database {
         }
         return res;
     }
+
+    /**
+     * List the contents of a user's cart
+     * @param user Whose cart
+     * @returns The cart
+     */
+    public async getUser(user: number): Promise<UserSchema[]> {
+        let connection: PoolConnection | undefined;
+        let res: Promise<UserSchema[]>;
+        try {
+            connection = await this.pool.getConnection();
+            res = connection.query(`SELECT * FROM ${Database.userTable} WHERE id LIKE ${user};`);
+        } catch (err) {
+            throw err;
+        } finally {
+            if (connection) await connection.end();
+        }
+        return res;
+    }
+
+
 }
 
 export default Database;

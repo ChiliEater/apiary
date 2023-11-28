@@ -11,4 +11,9 @@ enum Category {
     Vietnamese = 10,
 }
 
+export function parseCategory(num: number): Category | undefined { 
+    return Category[Category[num] as keyof typeof Category];
+}
+
+
 export default Category;
