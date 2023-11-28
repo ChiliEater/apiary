@@ -30,13 +30,19 @@ class Products {
 
     public listProductsInCategory(server: Express) {
         server.get(Products.productQuery, (req: Request, res: Response) => {
-            let query: string = req.query["id"] as string ?? "";
-            let id = parseCategory(parseInt(query));
-            if (id) {
-                this.db.getProductsInCategory(id).then(results => {
+            let keywords: string = req.query["name"] as string ?? "";
+            let categoryString: string = req.query["category"] as string ?? "";
+            let category = parseCategory(parseInt(categoryString));
+            if (keywords !== "") {
+                this.db.searchByNameCategory(keywords, category).then(results => {
                     res.send(results);
                 });
-            } else {
+            } else if (category && keywords === "") {
+                this.db.getProductsInCategory(category).then(results => {
+                    res.send(results);
+                });
+            } 
+            else {
                 res.status(404).send("Invalid category");
             }
         });

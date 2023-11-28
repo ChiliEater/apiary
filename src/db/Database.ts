@@ -171,6 +171,25 @@ class Database {
         return res;
     }
 
+    public async searchByNameCategory(keyword: string, category: Category | undefined): Promise<ProductSchema[]> {
+        let connection: PoolConnection | undefined;
+        let res: Promise<ProductSchema[]>;
+        try {
+            console.log(keyword.split(" ")[0]);
+            connection = await this.pool.getConnection();
+            if (category) {
+                res = connection.query(`SELECT * FROM ${Database.productTable} WHERE LOWER(name) LIKE LOWER('%${keyword.split(" ")[0]}%') AND category LIKE ${category};`);
+            } else {
+                res = connection.query(`SELECT * FROM ${Database.productTable} WHERE LOWER(name) LIKE LOWER('%${keyword.split(" ")[0]}%');`);
+            }
+        } catch (err) {
+            throw err;
+        } finally {
+            if (connection) await connection.end();
+        }
+        return res;
+    }
+
 
 }
 
