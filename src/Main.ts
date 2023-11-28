@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import Logger from './logger/Logger';
 import mariadb from 'mariadb';
 import Database from './db/Database';
+import Category from './db/Category';
 
 dotenv.config()
 
@@ -12,7 +13,9 @@ const publicRoot: string = process.env.ROOT as unknown as string;
 const cookiePath: RegExp = /\/cookie\/.*?\/?/;
 
 const db = new Database();
-db.getCategories().then(val => console.log(val));
+db.addToCart(1, 1).then(val => console.log(val.insertId));
+db.removeFromCart(2n).then(val => console.log(val));
+db.removeFromCart(2n).then(val => console.log(val));
 
 /*
 server.get("/", (req: Request, res: Response) => {
