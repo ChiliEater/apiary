@@ -1,6 +1,6 @@
 import mariadb, { Pool, PoolConnection, UpsertResult } from 'mariadb';
 import Random from '../random/Random';
-import Category from './Products';
+import Category from './Category';
 import Logger from '../logger/Logger';
 import Database from './Database';
 
