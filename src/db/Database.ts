@@ -33,7 +33,7 @@ class Database {
             user: 'node',
             password: 'DrqY8s9jHiUNuctk',
             database: 'node',
-            connectionLimit: 1
+            connectionLimit: 10
         });
         DummyData.setupData(this.pool).then(() => { });
     }
