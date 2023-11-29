@@ -51,7 +51,7 @@ GET http://apiary/categories
 ### List all products in a category
 
 ```http
-GET http://apiary/products?id={categoryId}
+GET http://apiary/products?category={categoryId}
 ```
 
 ```json

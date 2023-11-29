@@ -1,2 +1,2 @@
-GET http://localhost:7777/products?name=amazing HTTP/1.1
+GET http://localhost:7777/products? HTTP/1.1
 

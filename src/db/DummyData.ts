@@ -164,7 +164,7 @@ class DummyData {
             Random.shuffleArray(this.prefixes.slice()),
             name[0].toUpperCase() + name.slice(1),
             category,
-            new Array(5).fill("").map((_, i) => `img/products/${name}/${name}${i}.jpg`)
+            new Array(5).fill("").map((_, i) => `img/products/${name}/${name}${i+1}.jpg`)
         )));
 
         res = await this.addProduct(connection, Database.productTable, products)
