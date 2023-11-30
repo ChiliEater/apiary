@@ -34,7 +34,6 @@ class Products {
             let categoryString: string = req.query["category"] as string ?? "";
             let category = parseCategory(parseInt(categoryString));
             if (category && !keywords) {
-                console.log(keywords);
                 this.db.getProductsInCategory(category).then(results => {
                     res.send(results);
                 });
